@@ -70,7 +70,7 @@ class KeywordQueryEventListener(EventListener):
         update_database(extension)
 
     def generate_results(self, extension, pattern, locate_flags):
-        for (f) in get_file_list(extension, pattern, locate_flags, 100):
+        for (f) in get_file_list(extension, pattern, locate_flags):
             path = '%s' % (f)
             yield ExtensionSmallResultItem(icon=exec_icon,
                                            name=path,
@@ -98,11 +98,11 @@ class ItemEnterEventListener(EventListener):
             raise
 
 
-def get_file_list(extension, pattern, flags, limit):
+def get_file_list(extension, pattern, flags):
     """
-    Returns a list of tuples (filename, type)
+    Returns a list filenames.
     """
-    cmd = ['locate', '--limit', str(limit), '--database', database_filepath]
+    cmd = ['locate', '--database', database_filepath]
 
     for flag in flags.split(' '):
         cmd.append(flag)

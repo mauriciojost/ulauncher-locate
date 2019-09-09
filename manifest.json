@@ -15,7 +15,7 @@
             "id": "flags",
             "type": "text",
             "name": "Flags to be used for locate tool",
-            "default_value": "--ignore-case"
+            "default_value": "--ignore-case --limit 10"
         },
         {
             "id": "update",
