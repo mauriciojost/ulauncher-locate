@@ -1,0 +1,27 @@
+{
+    "required_api_version": "^2.0.0",
+    "name": "Locator",
+    "description": "This can locate files using locate tool",
+    "developer_name": "Mauricio Jost",
+    "icon": "images/icon.png",
+    "preferences": [
+        {
+            "id": "locate",
+            "type": "keyword",
+            "name": "Locate file from database",
+            "default_value": "fl"
+        },
+        {
+            "id": "flags",
+            "type": "text",
+            "name": "Flags to be used for locate tool",
+            "default_value": "--ignore-case"
+        },
+        {
+            "id": "update",
+            "type": "keyword",
+            "name": "Update files database",
+            "default_value": "fu"
+        }
+    ]
+}
