@@ -66,7 +66,10 @@ class KeywordQueryEventListener(EventListener):
         for (f) in get_file_list(extension, pattern, locate_flags):
             path = '%s' % (f)
             script = open_script + ' ' + path
-            yield ExtensionSmallResultItem(icon=exec_icon, name=path, on_enter=RunScriptAction(script))
+            yield ExtensionSmallResultItem(
+                                           icon=exec_icon, 
+                                           name=path, 
+                                           on_enter=RunScriptAction(script))
 
 
 def get_file_list(extension, pattern, flags):
