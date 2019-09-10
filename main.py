@@ -11,7 +11,7 @@ from itertools import islice
 from subprocess import Popen, PIPE, check_call, CalledProcessError
 from ulauncher.api.client.Extension import Extension
 from ulauncher.api.client.EventListener import EventListener
-from ulauncher.api.shared.event import KeywordQueryEvent, ItemEnterEvent
+from ulauncher.api.shared.event import KeywordQueryEvent
 from ulauncher.api.shared.item.ExtensionSmallResultItem import ExtensionSmallResultItem
 from ulauncher.api.shared.action.RenderResultListAction import RenderResultListAction
 from ulauncher.api.shared.action.DoNothingAction import DoNothingAction
@@ -30,7 +30,6 @@ class LocateExtension(Extension):
     def __init__(self):
         super(LocateExtension, self).__init__()
         self.subscribe(KeywordQueryEvent, KeywordQueryEventListener())
-        self.subscribe(ItemEnterEvent, ItemEnterEventListener())
         setlocale(LC_NUMERIC, '')  # set to OS default locale;
 
     def show_notification(self, title, text=None, icon=ext_icon):
@@ -56,7 +55,7 @@ class KeywordQueryEventListener(EventListener):
 
         if keyword_id == "locate_keyword":
             # locate a file in database
-            return RenderResultListAction(list(islice(self.generate_results(extension, pattern, locate_flags, open_script), 100)))
+            return RenderResultListAction(list(self.generate_results(extension, pattern, locate_flags, open_script)))
         elif keyword_id == "update_keyword":
             # update files database
             cmd = ' '.join(['updatedb', '--require-visibility', '0', '--output', database_filepath])
@@ -70,25 +69,15 @@ class KeywordQueryEventListener(EventListener):
             yield ExtensionSmallResultItem(icon=exec_icon, name=path, on_enter=RunScriptAction(script))
 
 
-class ItemEnterEventListener(EventListener):
-
-    def on_event(self, event, extension):
-        logger.debug('Ignored')
-
-
 def get_file_list(extension, pattern, flags):
     """
     Returns a list filenames.
     """
     cmd = ['locate', '--database', database_filepath]
-
     for flag in flags.split(' '):
         cmd.append(flag)
-
     cmd.append(pattern)
-
     logger.debug('Locating files with pattern: %s ' % (','.join(cmd)))
-
     process = Popen(cmd, stdout=PIPE)
     out = process.communicate()[0].decode('utf8')
     for line in out.split('\n'):
