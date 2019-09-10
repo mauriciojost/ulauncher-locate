@@ -31,6 +31,14 @@
             "type": "text",
             "name": "Script to be used to open files once selected",
             "default_value": "gedit"
+        },
+        {
+            "id": "terminal_emulator",
+            "type": "select",
+            "name": "Terminal Emulator",
+            "description": "Sets the terminal emulator to open directories directly in the terminal",
+            "default_value": "gnome-terminal",
+            "options": ["gnome-terminal", "tilix", "terminator", "xfce-terminal"]
         }
     ]
 }

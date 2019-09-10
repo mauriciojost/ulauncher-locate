@@ -28,12 +28,6 @@ class LocateExtension(Extension):
         super(LocateExtension, self).__init__()
         self.subscribe(KeywordQueryEvent, KeywordQueryEventListener())
 
-    def show_notification(self, title, text=None, icon=ext_icon):
-        logger.debug('Show notification: %s' % text)
-        icon_full_path = os.path.join(os.path.dirname(__file__), icon)
-        Notify.init("LocateExtension")
-        Notify.Notification.new(title, text, icon_full_path).show()
-
 class KeywordQueryEventListener(EventListener):
 
     def on_event(self, event, extension):
@@ -44,27 +38,27 @@ class KeywordQueryEventListener(EventListener):
         locate_keyword = extension.preferences['locate_keyword']
         locate_flags = extension.preferences['locate_flags']
         open_script = extension.preferences['open_script']
+        terminal_emulator = extension.preferences['terminal_emulator']
 
         if keyword == locate_keyword:
             # locate a file in database
-            return RenderResultListAction(list(self.generate_results(extension, pattern, locate_flags, open_script)))
+            return RenderResultListAction(list(self.generate_results(extension, pattern, locate_flags, open_script, terminal_emulator)))
         elif keyword == update_keyword:
             # update files database
             cmd = ' '.join(['updatedb', '--require-visibility', '0', '--output', database_filepath])
             logger.debug('Database update command: %s ' % cmd)
+            show_notification('Information', 'Updating database...')
             return RunScriptAction(cmd)
 
-    def generate_results(self, extension, pattern, locate_flags, open_script):
-
-
+    def generate_results(self, extension, pattern, locate_flags, open_script, terminal_emulator):
         for (f) in get_file_list(extension, pattern, locate_flags):
-
-            path = '%s' % (f)
-            script = open_script + ' ' + path
+            file_path = '%s' % os.path.abspath(f)
+            file_dir = '%s' % os.path.abspath(os.path.join(file_path, os.pardir))
             yield ExtensionSmallResultItem(
                                            icon=get_icon(f), 
-                                           name=path, 
-                                           on_enter=RunScriptAction(script))
+                                           name=file_path, 
+                                           on_enter=RunScriptAction(open_script + ' ' + file_path),
+                                           on_alt_enter=RunScriptAction(terminal_emulator + ' --working-directory ' + file_dir))
 
 
 def get_icon(f):
@@ -100,8 +94,13 @@ def get_file_list(extension, pattern, flags):
     Returns a list filenames.
     """
     cmd = ['locate', '--database', database_filepath]
+
+    if not os.path.isfile(database_filepath):
+        show_notification('Error', 'Must update database first')
+
     for flag in flags.split(' '):
         cmd.append(flag)
+
     cmd.append(pattern)
     logger.debug('Locating files with pattern: %s ' % (','.join(cmd)))
     process = Popen(cmd, stdout=PIPE)
@@ -109,6 +108,13 @@ def get_file_list(extension, pattern, flags):
     for line in out.split('\n'):
         f = line
         yield (f)
+
+def show_notification(title, text=None, icon=ext_icon):
+    logger.debug('Show notification: %s' % text)
+    icon_full_path = os.path.join(os.path.dirname(__file__), icon)
+    Notify.init("LocateExtension")
+    Notify.Notification.new(title, text, icon_full_path).show()
+
 
 if __name__ == '__main__':
     LocateExtension().run()
