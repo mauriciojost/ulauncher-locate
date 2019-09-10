@@ -4,6 +4,9 @@
     "description": "This can locate files using locate tool",
     "developer_name": "Mauricio Jost",
     "icon": "images/icon.png",
+    "options": {
+        "query_debounce": 0.3
+    },
     "preferences": [
         {
             "id": "locate_keyword",
