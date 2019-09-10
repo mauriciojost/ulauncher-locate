@@ -6,22 +6,28 @@
     "icon": "images/icon.png",
     "preferences": [
         {
-            "id": "locate",
+            "id": "locate_keyword",
             "type": "keyword",
             "name": "Locate file from database",
             "default_value": "fl"
         },
         {
-            "id": "flags",
+            "id": "update_keyword",
+            "type": "keyword",
+            "name": "Update files database",
+            "default_value": "fu"
+        },
+        {
+            "id": "locate_flags",
             "type": "text",
             "name": "Flags to be used for locate tool",
             "default_value": "--ignore-case --limit 10"
         },
         {
-            "id": "update",
-            "type": "keyword",
-            "name": "Update files database",
-            "default_value": "fu"
+            "id": "open_script",
+            "type": "text",
+            "name": "Script to be used to open files once selected",
+            "default_value": "gedit"
         }
     ]
 }
