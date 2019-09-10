@@ -5,19 +5,17 @@ import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('Notify', '0.7')
 
-from locale import atof, setlocale, LC_NUMERIC
 from gi.repository import Notify
-from itertools import islice
-from subprocess import Popen, PIPE, check_call, CalledProcessError
+from subprocess import Popen, PIPE
 from ulauncher.api.client.Extension import Extension
 from ulauncher.api.client.EventListener import EventListener
 from ulauncher.api.shared.event import KeywordQueryEvent
 from ulauncher.api.shared.item.ExtensionSmallResultItem import ExtensionSmallResultItem
+
 from ulauncher.api.shared.action.RenderResultListAction import RenderResultListAction
 from ulauncher.api.shared.action.DoNothingAction import DoNothingAction
 from ulauncher.api.shared.action.OpenAction import OpenAction
 from ulauncher.api.shared.action.RunScriptAction import RunScriptAction
-
 
 logger = logging.getLogger(__name__)
 ext_icon = 'images/icon.png'
@@ -30,14 +28,12 @@ class LocateExtension(Extension):
     def __init__(self):
         super(LocateExtension, self).__init__()
         self.subscribe(KeywordQueryEvent, KeywordQueryEventListener())
-        setlocale(LC_NUMERIC, '')  # set to OS default locale;
 
     def show_notification(self, title, text=None, icon=ext_icon):
         logger.debug('Show notification: %s' % text)
         icon_full_path = os.path.join(os.path.dirname(__file__), icon)
         Notify.init("LocateExtension")
         Notify.Notification.new(title, text, icon_full_path).show()
-
 
 class KeywordQueryEventListener(EventListener):
 
@@ -67,7 +63,6 @@ class KeywordQueryEventListener(EventListener):
                                            icon=exec_icon, 
                                            name=path, 
                                            on_enter=RunScriptAction(script))
-
 
 def get_file_list(extension, pattern, flags):
     """
