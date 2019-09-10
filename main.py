@@ -45,18 +45,15 @@ class KeywordQueryEventListener(EventListener):
         pattern = str(event.get_argument())
         keyword = event.get_keyword()
         
-        for pref_id, pref_value in list(extension.preferences.items()):
-            if pref_value == keyword:
-                keyword_id = pref_id
-            elif pref_id == 'locate_flags':
-                locate_flags = pref_value
-            elif pref_id == 'open_script':
-                open_script = pref_value
+        update_keyword = extension.preferences['update_keyword']
+        locate_keyword = extension.preferences['locate_keyword']
+        locate_flags = extension.preferences['locate_flags']
+        open_script = extension.preferences['open_script']
 
-        if keyword_id == "locate_keyword":
+        if keyword == locate_keyword:
             # locate a file in database
             return RenderResultListAction(list(self.generate_results(extension, pattern, locate_flags, open_script)))
-        elif keyword_id == "update_keyword":
+        elif keyword == update_keyword:
             # update files database
             cmd = ' '.join(['updatedb', '--require-visibility', '0', '--output', database_filepath])
             logger.debug('Database update command: %s ' % cmd)
