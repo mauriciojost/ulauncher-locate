@@ -1,11 +1,12 @@
 import os
 import logging
 import gi
+import mimetypes
 
 gi.require_version('Gtk', '3.0')
 gi.require_version('Notify', '0.7')
 
-from gi.repository import Notify
+from gi.repository import Gtk, Gio, Notify
 from subprocess import Popen, PIPE
 from ulauncher.api.client.Extension import Extension
 from ulauncher.api.client.EventListener import EventListener
@@ -56,11 +57,39 @@ class KeywordQueryEventListener(EventListener):
             return RunScriptAction(cmd)
 
     def generate_results(self, extension, pattern, locate_flags, open_script):
+
+
         for (f) in get_file_list(extension, pattern, locate_flags):
+
+            file = Gio.File.new_for_path("/")
+            folder_info = file.query_info('standard::icon', 0, Gio.Cancellable())
+            folder_icon = folder_info.get_icon().get_names()[0]
+            icon_theme = Gtk.IconTheme.get_default()
+            icon_folder = icon_theme.lookup_icon(folder_icon, 128, 0)
+            if icon_folder:
+                folder_icon = icon_folder.get_filename()
+            else:
+                folder_icon = "images/folder.png"
+
+            if os.path.isdir(f):
+                icon = folder_icon
+            else:
+                type_, encoding = mimetypes.guess_type(f)
+
+                if type_:
+                    file_icon = Gio.content_type_get_icon(type_)
+                    file_info = icon_theme.choose_icon(file_icon.get_names(), 128, 0)
+                    if file_info:
+                        icon = file_info.get_filename()
+                    else:
+                        icon = "images/file.png"
+                else:
+                    icon = "images/file.png"
+
             path = '%s' % (f)
             script = open_script + ' ' + path
             yield ExtensionSmallResultItem(
-                                           icon=exec_icon, 
+                                           icon=icon, 
                                            name=path, 
                                            on_enter=RunScriptAction(script))
 
