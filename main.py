@@ -35,30 +35,39 @@ class KeywordQueryEventListener(EventListener):
         keyword = event.get_keyword()
         
         update_keyword = extension.preferences['update_keyword']
-        locate_keyword = extension.preferences['locate_keyword']
+        locate_file_keyword = extension.preferences['locate_file_keyword']
+        locate_dir_keyword = extension.preferences['locate_dir_keyword']
+
         locate_flags = extension.preferences['locate_flags']
         open_script = extension.preferences['open_script']
         terminal_emulator = extension.preferences['terminal_emulator']
+        permissive_pattern = extension.preferences['permissive_pattern']
 
-        if keyword == locate_keyword:
-            # locate a file in database
-            return RenderResultListAction(list(self.generate_results(extension, pattern, locate_flags, open_script, terminal_emulator)))
+        if permissive_pattern == 'yes':
+            pattern = '*' + pattern.replace(' ', '*') + '*'
+
+        if keyword == locate_file_keyword:
+            # locate a file or directory in database
+            return RenderResultListAction(list(self.generate_results(extension, pattern, locate_flags, open_script, terminal_emulator, False)))
+        elif keyword == locate_dir_keyword:
+            # locate a directory in database
+            return RenderResultListAction(list(self.generate_results(extension, pattern, locate_flags, open_script, terminal_emulator, True)))
         elif keyword == update_keyword:
             # update files database
-            cmd = ' '.join(['updatedb', '--require-visibility', '0', '--output', database_filepath])
+            cmd = ' '.join(['updatedb', '--require-visibility', 'no', '--output', database_filepath])
             logger.debug('Database update command: %s ' % cmd)
             show_notification('Information', 'Updating database...')
             return RunScriptAction(cmd)
 
-    def generate_results(self, extension, pattern, locate_flags, open_script, terminal_emulator):
-        for (f) in get_file_list(extension, pattern, locate_flags):
+    def generate_results(self, extension, pattern, locate_flags, open_script, terminal_emulator, dirs_only):
+        for (f) in get_file_list(extension, pattern, locate_flags, dirs_only):
             file_path = '%s' % os.path.abspath(f)
             file_dir = '%s' % os.path.abspath(os.path.join(file_path, os.pardir))
             yield ExtensionSmallResultItem(
                                            icon=get_icon(f), 
                                            name=file_path, 
-                                           on_enter=RunScriptAction(open_script + ' ' + file_path),
-                                           on_alt_enter=RunScriptAction(terminal_emulator + ' --working-directory ' + file_dir))
+                                           on_enter=RunScriptAction(' '.join([open_script, file_path])),
+                                           on_alt_enter=RunScriptAction(' '.join([terminal_emulator, '--working-directory', file_dir])))
 
 
 def get_icon(f):
@@ -89,7 +98,7 @@ def get_icon(f):
 
     return icon
 
-def get_file_list(extension, pattern, flags):
+def get_file_list(extension, pattern, flags, dirs_only):
     """
     Returns a list filenames.
     """
@@ -105,9 +114,11 @@ def get_file_list(extension, pattern, flags):
     logger.debug('Locating files with pattern: %s ' % (','.join(cmd)))
     process = Popen(cmd, stdout=PIPE)
     out = process.communicate()[0].decode('utf8')
-    for line in out.split('\n'):
-        f = line
-        yield (f)
+    files = out.split('\n')
+    if dirs_only: 
+        return filter(lambda f: os.path.isdir(f), files)
+    else:
+        return files
 
 def show_notification(title, text=None, icon=ext_icon):
     logger.debug('Show notification: %s' % text)

@@ -9,10 +9,16 @@
     },
     "preferences": [
         {
-            "id": "locate_keyword",
+            "id": "locate_file_keyword",
             "type": "keyword",
             "name": "Locate file from database",
             "default_value": "fl"
+        },
+        {
+            "id": "locate_dir_keyword",
+            "type": "keyword",
+            "name": "Locate directory from database",
+            "default_value": "dl"
         },
         {
             "id": "update_keyword",
@@ -39,6 +45,14 @@
             "description": "Sets the terminal emulator to open directories directly in the terminal",
             "default_value": "gnome-terminal",
             "options": ["gnome-terminal", "tilix", "terminator", "xfce-terminal"]
+        },
+        {
+            "id": "permissive_pattern",
+            "type": "select",
+            "name": "Permissive Pattern",
+            "description": "Whether or not the pattern introduced is interpreted as *pattern*",
+            "default_value": "yes",
+            "options": ["yes", "no"]
         }
     ]
 }
