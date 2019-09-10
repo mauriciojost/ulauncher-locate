@@ -20,8 +20,6 @@ from ulauncher.api.shared.action.RunScriptAction import RunScriptAction
 
 logger = logging.getLogger(__name__)
 ext_icon = 'images/icon.png'
-exec_icon = 'images/executable.png'
-dead_icon = 'images/dead.png'
 database_filepath = os.path.join(os.getenv("HOME"), '.locate-ulauncher-database')
 
 class LocateExtension(Extension):
@@ -61,37 +59,41 @@ class KeywordQueryEventListener(EventListener):
 
         for (f) in get_file_list(extension, pattern, locate_flags):
 
-            file = Gio.File.new_for_path("/")
-            folder_info = file.query_info('standard::icon', 0, Gio.Cancellable())
-            folder_icon = folder_info.get_icon().get_names()[0]
-            icon_theme = Gtk.IconTheme.get_default()
-            icon_folder = icon_theme.lookup_icon(folder_icon, 128, 0)
-            if icon_folder:
-                folder_icon = icon_folder.get_filename()
-            else:
-                folder_icon = "images/folder.png"
-
-            if os.path.isdir(f):
-                icon = folder_icon
-            else:
-                type_, encoding = mimetypes.guess_type(f)
-
-                if type_:
-                    file_icon = Gio.content_type_get_icon(type_)
-                    file_info = icon_theme.choose_icon(file_icon.get_names(), 128, 0)
-                    if file_info:
-                        icon = file_info.get_filename()
-                    else:
-                        icon = "images/file.png"
-                else:
-                    icon = "images/file.png"
-
             path = '%s' % (f)
             script = open_script + ' ' + path
             yield ExtensionSmallResultItem(
-                                           icon=icon, 
+                                           icon=get_icon(f), 
                                            name=path, 
                                            on_enter=RunScriptAction(script))
+
+
+def get_icon(f):
+    file = Gio.File.new_for_path("/")
+    folder_info = file.query_info('standard::icon', 0, Gio.Cancellable())
+    folder_icon = folder_info.get_icon().get_names()[0]
+    icon_theme = Gtk.IconTheme.get_default()
+    icon_folder = icon_theme.lookup_icon(folder_icon, 128, 0)
+    if icon_folder:
+        folder_icon = icon_folder.get_filename()
+    else:
+        folder_icon = "images/folder.png"
+
+    if os.path.isdir(f):
+        icon = folder_icon
+    else:
+        type_, encoding = mimetypes.guess_type(f)
+
+        if type_:
+            file_icon = Gio.content_type_get_icon(type_)
+            file_info = icon_theme.choose_icon(file_icon.get_names(), 128, 0)
+            if file_info:
+                icon = file_info.get_filename()
+            else:
+                icon = "images/file.png"
+        else:
+            icon = "images/file.png"
+
+    return icon
 
 def get_file_list(extension, pattern, flags):
     """
